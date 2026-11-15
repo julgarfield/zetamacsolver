@@ -37,7 +37,7 @@ for img in nums_folder:
 
 #symbols:
 sym_certainty = {} #dictionary that has symbol keys (str) and max values (floats)
-# sym_best_locations = {} #dictionary of symbol keys (str) and locations (tuples) of best certainty value
+sym_best_locations = {} #dictionary of symbol keys (str) and locations (tuples) of best certainty value
 for img in syms_folder:
     template = cv.imread(img, cv.IMREAD_GRAYSCALE)
     if img.name == "symplus.png": current_sym = "+"
@@ -47,7 +47,26 @@ for img in syms_folder:
     sym_res = cv.matchTemplate(ss_array_gray, template, cv.TM_CCOEFF_NORMED)
     min_val, max_val, min_loc, max_loc = cv.minMaxLoc(sym_res)
     sym_certainty[current_sym] = max_val
-    # sym_best_locations[current_sym] = max_loc
+    sym_best_locations[current_sym] = max_loc
+
+#initalize full expression dictionary with keys x positions and values number/symbol
+expression_dict = {}
 
 #best guess at which symbol it is
 best_symbol = max(sym_certainty, key=sym_certainty.get)
+#add position and symbol to full expression dict
+best_symbol_pos = int(sym_best_locations[best_symbol][0])
+expression_dict[best_symbol_pos] = best_symbol
+
+#find locations of number instances and add to full expression dictionary
+for num in num_locs:
+    for instance in num_locs[num]:
+        inst_pos = int(num_locs[num][instance][0]) # x position of current number instance
+        expression_dict[inst_pos] = num
+
+#sort into full expression and turn into string
+sorted_expression = dict(sorted(expression_dict.items()))
+expression_str = "".join(sorted_expression.values())
+
+#compute answer
+answer = eval(expression_str)
