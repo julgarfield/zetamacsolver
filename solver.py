@@ -34,10 +34,14 @@ def screenie(top = 363, left = 567, width = 150, height = 70):
     
     return ss_array_gray
 
-def iou(instances_list, iou_output_instances = []): #Intersection over Union (kinda)
-    if len(instances_list) <= 1:
+def iou(instances_list, iou_output_instances = None): #Intersection over Union (kinda)
+    if iou_output_instances == None:
+        iou_output_instances = []
+    if len(instances_list) == 1:
         iou_output_instances.append(instances_list[0])
         return iou_output_instances
+    elif len(instances_list) == 0:
+        return
     best = max(instances_list, key=lambda i: i.score) #find best instance
     best_center = (best.x1 + best.x2)/2
     other_instances = []
@@ -46,7 +50,7 @@ def iou(instances_list, iou_output_instances = []): #Intersection over Union (ki
             other_instances.append(inst) #add instances that dont have the best's center within their bounding box
     iou_output_instances.append(best) #add best to master list
     if len(other_instances) != 0:
-        iou(other_instances, iou_output_instances) #if there are extras, recurision to iron out duplicates
+        return iou(other_instances, iou_output_instances) #if there are extras, recurision to iron out duplicates
     else:
         return iou_output_instances
 
@@ -69,7 +73,7 @@ def graytempmatch(grayarray): #template matching to find numbers and symbols in 
         numtemp_h, numtemp_w = template.shape[:2]
         current_num = img.name[3]
         num_res = cv.matchTemplate(grayarray, template, cv.TM_CCOEFF_NORMED)
-        post_iou_num_instances = nms(numtemp_h, numtemp_w, current_num, num_res, 0.96)
+    post_iou_num_instances = nms(numtemp_h, numtemp_w, current_num, num_res, 0.96)
 
     #symbols:
     name_to_sym = {"symplus.png" : "+", "symsub.png" : "-", "symmult.png" : "*", "symdiv.png" : "/"}
@@ -79,14 +83,15 @@ def graytempmatch(grayarray): #template matching to find numbers and symbols in 
         symtemp_h, symtemp_w = template.shape[:2]
         current_sym = name_to_sym[img.name]
         sym_res = cv.matchTemplate(grayarray, template, cv.TM_CCOEFF_NORMED)
-        post_iou_sym_instances = nms(symtemp_h, symtemp_w, current_sym, sym_res, 0.96)
+    post_iou_sym_instances = nms(symtemp_h, symtemp_w, current_sym, sym_res, 0.96)
 
     return post_iou_num_instances, post_iou_sym_instances
 
 def puttingitalltogether(num_instances, sym_instances):
     expression_dict = {}
-    
-    for inst in num_instances, sym_instances:
+
+    all_instances = num_instances + sym_instances
+    for inst in all_instances:
         expression_dict[inst.x1] = inst.numsym
 
     #sort into full expression and turn into string
