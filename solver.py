@@ -32,7 +32,7 @@ def graytempmatch(grayarray):
     #template matching to find numbers and symbols
     #numbers:
     num_locs = {} #dictionary that has number keys (str) and location values (list of tuples)
-    for img in nums_folder.iterdir():
+    for img in nums_folder.glob("*.png"):
         template = cv.imread(img, cv.IMREAD_GRAYSCALE)
         current_num = img.name[3]
         num_res = cv.matchTemplate(grayarray, template, cv.TM_CCOEFF_NORMED)
@@ -43,7 +43,7 @@ def graytempmatch(grayarray):
     #symbols:
     sym_certainty = {} #dictionary that has symbol keys (str) and max values (floats)
     sym_best_locations = {} #dictionary of symbol keys (str) and locations (tuples) of best certainty value
-    for img in syms_folder.iterdir():
+    for img in syms_folder.glob("*.png"):
         template = cv.imread(img, cv.IMREAD_GRAYSCALE)
         if img.name == "symplus.png": current_sym = "+"
         elif img.name == "symsub.png": current_sym = "-"
@@ -85,3 +85,4 @@ arrayfortempmatch = pracprob(sample_problem)
 num_locs, sym_certainty, sym_best_locations = graytempmatch(arrayfortempmatch)
 fullexpression = puttingitalltogether(num_locs, sym_certainty, sym_best_locations)
 answer = eval(fullexpression) #compute answer
+print(answer)
